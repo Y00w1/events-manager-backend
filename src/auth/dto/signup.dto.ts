@@ -20,7 +20,4 @@ export class SignupDto {
     @IsString()
     @IsNotEmpty()
     phone: string;
-
-    @IsEnum(Role, { message: `Role must be one of: ${Object.values(Role).join(', ')}` })
-    role: Role;
 }

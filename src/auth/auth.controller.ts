@@ -26,7 +26,7 @@ export class AuthController {
 
     @Post('logout')
     @HttpCode(HttpStatus.OK)
-    async logout(@GetCurrentUserId() userId: string): Promise<boolean> {
+    async logout(@GetCurrentUserId() userId: string) {
         return this.authService.logout(userId);
     }
 

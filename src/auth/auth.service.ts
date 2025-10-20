@@ -39,13 +39,13 @@ export class AuthService {
         return tokens;
     }
 
-    async logout(userId: string) {
+    async logout(userId: string){
         const user = await this.userService.findById(userId);
         if (!user || !user.hashedRefreshToken) {
             throw new BadRequestException('Invalid user or already logged out');
         }
         await this.userService.update(userId, { hashedRefreshToken: null });
-        return true;
+        return { message: 'Logout successful' };
     }
 
     async refreshTokens(userId: string, refreshToken: string): Promise<Tokens> {
