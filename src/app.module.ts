@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from './common/guard';
 import { CampusModule } from './campus/campus.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { CampusModule } from './campus/campus.module';
     AuthModule,
     UserModule,
     CampusModule,
+    RoomModule,
   ],
   controllers: [AppController],
   providers: [

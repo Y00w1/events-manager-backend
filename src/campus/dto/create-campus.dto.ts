@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateCampusDto {
@@ -7,5 +7,10 @@ export class CreateCampusDto {
     @IsString()
     @IsNotEmpty()
     name: string;
+
+    @Transform(({ value }) => value?.trim())
+    @IsString()
+    @IsOptional()
+    state?: string;
 
 }
