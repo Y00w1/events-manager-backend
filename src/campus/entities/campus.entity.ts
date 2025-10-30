@@ -21,9 +21,6 @@ export class Campus {
     @Column({ default: () => 'CURRENT_TIMESTAMP' })
     createdAt: Date;
 
-    @Column({ nullable: true })
-    hashedRefreshToken?: string;
-
     @DeleteDateColumn({ nullable: true })
     deletedAt?: Date;
     

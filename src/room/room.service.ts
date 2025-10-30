@@ -32,6 +32,7 @@ export class RoomService {
 
   async findAll() {
     const rooms = await this.roomRepository.find({
+      where: { isActive: true },
       relations: ['campus'],
     });
 

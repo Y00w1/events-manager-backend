@@ -23,7 +23,9 @@ export class CampusService {
   }
 
   async findAll() {
-    return await this.campusRepository.find();
+    return await this.campusRepository.find({
+      where: { isActive: true }
+    });
   }
 
   async findById(id: string): Promise<Campus | null> {
