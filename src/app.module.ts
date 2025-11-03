@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from './common/guard';
+import { AccessControlModule, ACGuard } from 'nest-access-control';
+import { RBAC_POLICY } from './auth/rbac-policy';
 import { CampusModule } from './campus/campus.module';
 import { RoomModule } from './room/room.module';
 import { EventModule } from './event/event.module';
@@ -19,7 +21,10 @@ import { EventModule } from './event/event.module';
       envFilePath: '.env',
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [
+        ConfigModule,
+        AccessControlModule.forRoles(RBAC_POLICY)
+      ],
       useFactory: (configService: ConfigService) => {
         // Validate required environment variables to prevent undefined values
         const dbUser = configService.get('DB_USER');
@@ -64,6 +69,10 @@ import { EventModule } from './event/event.module';
     { provide: APP_GUARD,
       useClass: AccessTokenGuard,
     },
+    {
+      provide: APP_GUARD,
+      useClass: ACGuard,
+    }
   ],
 })
 export class AppModule {}

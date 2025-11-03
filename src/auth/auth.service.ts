@@ -5,23 +5,24 @@ import { UserService } from 'src/user/user.service';
 import { Tokens } from './types';
 import { Role } from 'src/user/enum/role.enum';
 import { LoginDto, SignupDto } from './dto';
+import { BcryptAdapter } from 'src/common/crypto/bcrypt.adapter';
+import { UserResponseDto } from 'src/user/dto';
+import { UserMapper } from 'src/common/mappers/user.mapper';
 
 @Injectable()
 export class AuthService {
 
-    constructor(private readonly userService: UserService, 
-        private readonly jwtService: JwtService) {}
+    constructor(
+        private readonly userService: UserService,
+        private readonly jwtService: JwtService,
+        private readonly bcryptAdapter: BcryptAdapter,
+        private readonly userMapper: UserMapper,
+    ) { }
 
     async signupLocal(signupDto: SignupDto): Promise<Tokens> {
-        const existingUser = await this.userService.findByEmail(signupDto.email);
-        if (existingUser) {
-            throw new BadRequestException('User already exists');
-        }
-        const hashedPassword = await this.hashData(signupDto.password);
         const user = await this.userService.create({
             ...signupDto,
-            password: hashedPassword,
-        });
+        }, Role.USER);
         const tokens = await this.getTokens(user.id, user.email, user.role);
         await this.updateRefreshToken(user.id, tokens.refreshToken);
         return tokens;
@@ -31,7 +32,7 @@ export class AuthService {
         const user = await this.userService.findByEmail(loginDto.email);
         if (!user) throw new BadRequestException('Invalid credentials');
 
-        const passwordMatches = await this.verifyPassword(loginDto.password, user.password);
+        const passwordMatches = await this.bcryptAdapter.compare(loginDto.password, user.password);
         if (!passwordMatches) throw new BadRequestException('Invalid credentials');
 
         const tokens = await this.getTokens(user.id, user.email, user.role);
@@ -44,8 +45,8 @@ export class AuthService {
         if (!user || !user.hashedRefreshToken) {
             throw new BadRequestException('Invalid user or already logged out');
         }
-        await this.userService.update(userId, { hashedRefreshToken: null });
-        return true;
+        await this.userService.updateToken(userId, null);
+        return { message: 'Logout successful' };
     }
 
     async refreshTokens(userId: string, refreshToken: string): Promise<Tokens> {
@@ -53,7 +54,7 @@ export class AuthService {
         if (!user || !user.hashedRefreshToken) {
             throw new ForbiddenException('Invalid user or no refresh token found');
         }
-        const refreshTokenMatches = await this.verifyPassword(refreshToken, user.hashedRefreshToken);
+        const refreshTokenMatches = await this.bcryptAdapter.compare(refreshToken, user.hashedRefreshToken);
         if (!refreshTokenMatches) throw new ForbiddenException('Invalid refresh token');
 
         const tokens = await this.getTokens(user.id, user.email, user.role);
@@ -62,8 +63,10 @@ export class AuthService {
     }
 
     private async updateRefreshToken(userId: string, refreshToken: string) {
-        const hashedRefreshToken = await this.hashData(refreshToken);
-        await this.userService.update(userId, { hashedRefreshToken });
+        const hashedRefreshToken = refreshToken
+            ? await this.bcryptAdapter.hash(refreshToken)
+            : null;
+        await this.userService.updateToken(userId, hashedRefreshToken);
     }
 
     private async getTokens(userId: string, email: string, role: Role): Promise<Tokens> {
@@ -82,12 +85,10 @@ export class AuthService {
         return { accessToken: accessToken, refreshToken: refreshToken };
     }
 
-    private async hashData(data: string) {
-        const salt = await bcrypt.genSalt(10);
-        return await bcrypt.hash(data, salt);
-    }
-
-    private async verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-        return await bcrypt.compare(password, hashedPassword);
+    async getMe(userId: string): Promise<UserResponseDto> {
+        const user = await this.userService.findById(userId);
+        if (!user) throw new BadRequestException('User not found');
+        const userResponse: UserResponseDto = await this.userMapper.toResponseDto(user);
+        return userResponse;
     }
 }

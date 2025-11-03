@@ -1,11 +1,11 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, SignupDto } from './dto';
-import { AuthGuard } from '@nestjs/passport';
 import { Tokens } from './types';
 import { GetCurrentUserId, Public } from 'src/common/decorators';
 import { RefreshTokenGuard } from 'src/common/guard';
 import { GetCurrentUser } from 'src/common/decorators/get-current-user.decorators';
+import { UserResponseDto } from 'src/user/dto';
 
 @Controller('auth')
 export class AuthController {
@@ -26,7 +26,7 @@ export class AuthController {
 
     @Post('logout')
     @HttpCode(HttpStatus.OK)
-    async logout(@GetCurrentUserId() userId: string): Promise<boolean> {
+    async logout(@GetCurrentUserId() userId: string) {
         return this.authService.logout(userId);
     }
 
@@ -39,5 +39,10 @@ export class AuthController {
         @GetCurrentUser('refreshToken') refreshToken: string
     ): Promise<Tokens> {
         return this.authService.refreshTokens(userId, refreshToken);
+    }
+
+    @Get('me')
+    async getMe(@GetCurrentUserId() userId: string) : Promise<UserResponseDto>{
+        return this.authService.getMe(userId);
     }
 }

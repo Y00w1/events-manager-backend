@@ -1,5 +1,6 @@
 import { BeforeSoftRemove, Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "../enum/role.enum";
+import { Exclude } from "class-transformer";
 
 @Entity('users')
 export class User {
@@ -10,6 +11,7 @@ export class User {
     email: string;
 
     @Column()
+    @Exclude()
     password: string;
 
     @Column()
@@ -19,18 +21,25 @@ export class User {
     phone: string;
 
     @Column()
+    documentNumber: string;
+
+    @Column()
     role: Role;
 
     @Column( { default: true } )
+    @Exclude()
     isActive: boolean;
 
     @Column({ default: () => 'CURRENT_TIMESTAMP' })
+    @Exclude()
     createdAt: Date;
 
-    @Column({ nullable: true })
-    hashedRefreshToken?: string;
+    @Column({ type: 'varchar', nullable: true })
+    @Exclude()
+    hashedRefreshToken: string | null;
 
     @DeleteDateColumn({ nullable: true })
+    @Exclude()
     deletedAt?: Date;
     
     @BeforeSoftRemove()
