@@ -1,30 +1,30 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UseRoles } from 'nest-access-control';
+import { CreateUserDto, UserResponseDto, UpdateUserDto } from './dto';
+import { Role } from './enum/role.enum';
+import { GetCurrentUserId } from 'src/common/decorators';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @Post('create/organizer')
+  @UseRoles({
+    resource: 'user',
+    action: 'create',
+    possession: 'own',
+  })
+  createUserOrganizer(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
+    return this.userService.create(
+      createUserDto,
+      Role.ORGANIZER,
+  );
   }
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
-  }
-
-  @Get(':email')
-  findOne(@Param('email') email: string) {
-    return this.userService.findByEmail(email);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(id, updateUserDto);
+  @Patch()
+  update(@GetCurrentUserId() userId: string, @Body() updateUserDto: UpdateUserDto):Promise<UserResponseDto> {
+    return this.userService.update(userId, updateUserDto);
   }
 
   @Delete(':id')

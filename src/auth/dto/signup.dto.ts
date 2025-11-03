@@ -1,6 +1,5 @@
 import { Transform } from 'class-transformer';
 import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
-import { Role } from 'src/user/enum/role.enum';
 
 export class SignupDto {
     @Transform(({ value }) => value?.trim())
@@ -20,4 +19,9 @@ export class SignupDto {
     @IsString()
     @IsNotEmpty()
     phone: string;
+
+    @Transform(({ value }) => value?.trim())
+    @IsString()
+    @IsNotEmpty()
+    documentNumber: string;
 }
