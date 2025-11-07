@@ -10,6 +10,9 @@ import { AccessTokenGuard } from './common/guard';
 import { AccessControlModule, ACGuard } from 'nest-access-control';
 import { RBAC_POLICY } from './auth/rbac-policy';
 import { NotificationsModule } from './notifications/notifications.module';
+import { CampusModule } from './campus/campus.module';
+import { RoomModule } from './room/room.module';
+import { EventModule } from './event/event.module';
 
 @Module({
   imports: [
@@ -58,6 +61,9 @@ import { NotificationsModule } from './notifications/notifications.module';
     AuthModule,
     UserModule,
     NotificationsModule,
+    CampusModule,
+    RoomModule,
+    EventModule,
   ],
   controllers: [AppController],
   providers: [
