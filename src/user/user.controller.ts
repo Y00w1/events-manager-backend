@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UseRoles } from 'nest-access-control';
 import { CreateUserDto, UserResponseDto, UpdateUserDto } from './dto';
@@ -25,6 +25,11 @@ export class UserController {
   @Patch()
   update(@GetCurrentUserId() userId: string, @Body() updateUserDto: UpdateUserDto):Promise<UserResponseDto> {
     return this.userService.update(userId, updateUserDto);
+  }
+
+  @Patch('promote/organizer')
+  promoteToOrganizer(@Query('email') email: string): Promise<UserResponseDto> {
+    return this.userService.updateToOrganizer(email);
   }
 
   @Delete(':id')

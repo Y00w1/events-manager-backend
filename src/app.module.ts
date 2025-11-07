@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from './common/guard';
 import { AccessControlModule, ACGuard } from 'nest-access-control';
 import { RBAC_POLICY } from './auth/rbac-policy';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { RBAC_POLICY } from './auth/rbac-policy';
     }),
     AuthModule,
     UserModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [
