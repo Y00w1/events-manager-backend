@@ -7,6 +7,8 @@ import { Event } from 'src/event/entities/event.entity';
 import { ENROLLMENT_EXCEPTION_MESSAGES, ENROLLMENT_STATUS } from '../constant/enrollment.constant';
 import { EnrollmentAlreadyExistsException } from '../exceptions/enrollment-already-exists.exception';
 import { EnrollmentEventFullException } from '../exceptions/enrollment-event-full.exception';
+import { EnrollmentNotFoundException } from '../exceptions/enrollment-not-found.exception';
+import { EnrollmentCancelledResponseDto } from '../dto/enrollment-cancelled-response.dto';
 
 @Injectable()
 export class EnrollmentService {
@@ -58,6 +60,21 @@ export class EnrollmentService {
     return this.toDtoResponse(newEnrollment);
   }
 
+  async cancel(id: string, userId: string): Promise<EnrollmentCancelledResponseDto> {
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: { id, user: { id: userId } },
+    });
+
+    if (!enrollment) throw new EnrollmentNotFoundException();
+
+    if (enrollment.status === ENROLLMENT_STATUS.CANCELLED) throw new EnrollmentNotFoundException();
+
+    enrollment.status = ENROLLMENT_STATUS.CANCELLED;
+    enrollment.cancelledAt = new Date();
+    await this.enrollmentRepository.save(enrollment);
+    return this.toCancelledDtoResponse(enrollment);
+  }
+
   findAll() {
     return `This action returns all enrollment`;
   }
@@ -102,6 +119,15 @@ export class EnrollmentService {
       eventId: enrollment.event.id,
       status: enrollment.status,
       enrollmentDate: enrollment.enrollmentDate,
+    };
+  }
+
+  private async toCancelledDtoResponse(enrollment: Enrollment): Promise<EnrollmentCancelledResponseDto> {
+    return {
+      enrollmentId: enrollment.id,
+      eventId: enrollment.event.id,
+      status: enrollment.status,
+      cancelledAt: enrollment.cancelledAt!,
     };
   }
 }

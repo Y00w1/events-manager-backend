@@ -3,6 +3,7 @@ import { CANCELLED } from "dns";
 export const ENROLLMENT_API_ENTRY_POINT = {
     BASE: '/enrollments',
     CREATE: '/create',
+    CANCEL: '/:id/cancel',
 };
 
 export const ENROLLMENT_STATUS = {

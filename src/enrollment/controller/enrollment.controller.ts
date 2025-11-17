@@ -13,6 +13,11 @@ export class EnrollmentController {
     return this.enrollmentService.create(createEnrollmentDto, userId);
   }
 
+  @Patch(ENROLLMENT_API_ENTRY_POINT.CANCEL)
+  cancel(@Param('id') id: string, @GetCurrentUserId() userId: string) {
+    return this.enrollmentService.cancel(id, userId);
+  }
+
   @Get()
   findAll() {
     return this.enrollmentService.findAll();
