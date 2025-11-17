@@ -9,9 +9,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from './common/guard';
 import { AccessControlModule, ACGuard } from 'nest-access-control';
 import { RBAC_POLICY } from './auth/rbac-policy';
+import { NotificationsModule } from './notifications/notifications.module';
 import { CampusModule } from './campus/campus.module';
 import { RoomModule } from './room/room.module';
 import { EventModule } from './event/event.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
 
 @Module({
   imports: [
@@ -59,9 +61,11 @@ import { EventModule } from './event/event.module';
     }),
     AuthModule,
     UserModule,
+    NotificationsModule,
     CampusModule,
     RoomModule,
     EventModule,
+    EnrollmentModule,
   ],
   controllers: [AppController],
   providers: [
