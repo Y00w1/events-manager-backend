@@ -1,14 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
+import { User } from '../entities/user.entity';
 import { Repository } from 'typeorm';
-import { Role } from './enum/role.enum';
-import { CreateUserDto, UserResponseDto, UpdateUserDto } from './dto';
+import { Role } from '../enum/role.enum';
+import { CreateUserDto, UserResponseDto, UpdateUserDto, GetUsersQueryDto, PaginatedUsersResponseDto } from '../dto';
 import { BcryptAdapter } from 'src/common/crypto/bcrypt.adapter';
 import { UserMapper } from 'src/common/mappers/user.mapper';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { SendTemplateDto } from 'src/notifications/dto/send-template.dto';
 import { NOTIFICATION_TEMPLATES } from 'src/notifications/constants/notifications.constants';
+import { ALLOWED_USER_SORT_FIELDS } from '../constant/user.constant';
 
 @Injectable()
 export class UserService {
@@ -42,6 +43,34 @@ export class UserService {
 
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { id } });
+  }
+
+  async findAll(query?: GetUsersQueryDto): Promise<PaginatedUsersResponseDto> {
+    const page = query?.page ?? 1;
+    const limit = query?.limit ?? 10;
+    const sortBy = ALLOWED_USER_SORT_FIELDS.includes(query?.sortBy!) ? query?.sortBy! : 'createdAt';
+    const sortOrder = query?.sortOrder ?? 'DESC';
+
+    const qb = this.userRepository.createQueryBuilder('user');
+
+    if (query?.email) {
+      qb.andWhere('user.email LIKE :email', { email: `%${query.email}%` });
+    }
+    if (query?.name) {
+      qb.andWhere('user.name LIKE :name', { name: `%${query.name}%` });
+    }
+    if (query?.role) {
+      qb.andWhere('user.role = :role', { role: query.role });
+    }
+
+    const total = await qb.getCount();
+
+    qb.orderBy(`user.${sortBy}`, sortOrder as 'ASC' | 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const users = await qb.getMany();
+    return this.userMapper.toPaginatedResponseDto(users, total, page, limit);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {

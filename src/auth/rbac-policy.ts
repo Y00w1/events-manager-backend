@@ -14,4 +14,5 @@ RBAC_POLICY
         .readAny('enrollment')
     .grant(Role.ADMIN)
         .extend(Role.ORGANIZER)
-        .createAny('user');
+        .createAny('user')
+        .readAny('user');

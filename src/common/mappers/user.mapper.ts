@@ -15,5 +15,20 @@ export class UserMapper {
     }
     async toResponseDtoList(users: User[]): Promise<UserResponseDto[]> {
     return Promise.all(users.map(user => this.toResponseDto(user)));
-  }
+    }
+
+    async toPaginatedResponseDto(
+        data: User[], 
+        total: number, 
+        page: number,
+        limit: number,
+    ){
+        const userDtos = await this.toResponseDtoList(data);
+        return {
+            data: userDtos,
+            total,
+            page,
+            limit,
+        };
+    }
 }
