@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Enrollment } from '../entities/enrollment.entity';
 import { Repository, Equal } from 'typeorm';
-import { CreateEnrollmentDto, EnrollmentCreatedResponseDto, UpdateEnrollmentDto } from '../dto';
+import { CreateEnrollmentDto, EnrollmentCreatedResponseDto, EnrollmentsByEventResponseDto, EnrollmentsByUserResponseDto, UpdateEnrollmentDto } from '../dto';
 import { Event } from 'src/event/entities/event.entity';
 import { ENROLLMENT_EXCEPTION_MESSAGES, ENROLLMENT_STATUS } from '../constant/enrollment.constant';
 import { EnrollmentAlreadyExistsException } from '../exceptions/enrollment-already-exists.exception';
@@ -30,7 +30,8 @@ export class EnrollmentService {
       where:{
         user: { id: userId },
         event: { id: event.id }
-      }
+      },
+      relations: ['event'],
      });
     if (enrollment){
       if (enrollment.status !== ENROLLMENT_STATUS.CANCELLED){
@@ -57,12 +58,17 @@ export class EnrollmentService {
     });
 
     await this.enrollmentRepository.save(newEnrollment);
-    return this.toDtoResponse(newEnrollment);
+    const savedEnrollment = await this.enrollmentRepository.findOneOrFail({
+      where: { id: newEnrollment.id },
+      relations: ['event'],
+    });
+    return this.toDtoResponse(savedEnrollment);
   }
 
   async cancel(id: string, userId: string): Promise<EnrollmentCancelledResponseDto> {
     const enrollment = await this.enrollmentRepository.findOne({
       where: { id, user: { id: userId } },
+      relations: ['event'],
     });
 
     if (!enrollment) throw new EnrollmentNotFoundException();
@@ -75,21 +81,24 @@ export class EnrollmentService {
     return this.toCancelledDtoResponse(enrollment);
   }
 
-  findAll() {
-    return `This action returns all enrollment`;
+  async findByUser(userId: string): Promise<EnrollmentsByUserResponseDto> {
+    const enrollments: Enrollment[] = await this.enrollmentRepository.find({
+      where: { user: { id: userId } },
+      relations: ['event', 'user'],
+    });
+    if (enrollments.length == 0) throw new EnrollmentNotFoundException();
+    return this.toDtoEnrollmentsByUserResponse(enrollments);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} enrollment`;
+  async findByEvent(eventId: string): Promise<EnrollmentsByEventResponseDto> {
+    const enrollments: Enrollment[] = await this.enrollmentRepository.find({
+      where: { event: { id: eventId } },
+      relations: ['user', 'event'],
+    });
+    if (enrollments.length == 0) throw new EnrollmentNotFoundException();
+    return this.toDtoEnrollmentsByEventResponse(enrollments);
   }
 
-  update(id: number, updateEnrollmentDto: UpdateEnrollmentDto) {
-    return `This action updates a #${id} enrollment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} enrollment`;
-  }
 
   private eventsOverlap(eventA: Event, eventB: Event): boolean {
     const datesOverlap = eventA.initialDate <= eventB.finalDate && eventA.finalDate >= eventB.initialDate;
@@ -111,6 +120,43 @@ export class EnrollmentService {
         status: Equal(ENROLLMENT_STATUS.ENROLLED) 
       },
     });
+  }
+
+  private async toDtoEnrollmentsByEventResponse(enrollments: Enrollment[]): Promise<EnrollmentsByEventResponseDto> {
+    return {
+      eventId: enrollments[0].event.id,
+      totalEnrollments: enrollments.length,
+      enrollments: enrollments.map(enrollment => ({
+        enrollmentId: enrollment.id,
+        user: {
+          id: enrollment.user.id,
+          name: enrollment.user.name,
+          email: enrollment.user.email,
+        },
+        status: enrollment.status,
+        enrollmentDate: enrollment.enrollmentDate,
+      })),
+    };
+  }
+
+  private async toDtoEnrollmentsByUserResponse(enrollments: Enrollment[]): Promise<EnrollmentsByUserResponseDto> {
+    return {
+      userId: enrollments[0].user.id,
+      totalEnrollments: enrollments.length,
+      enrollments: enrollments.map(enrollment => ({
+        enrollmentId: enrollment.id,
+        event: {
+          id: enrollment.event.id,
+          name: enrollment.event.name,
+          initialDate: enrollment.event.initialDate,
+          finalDate: enrollment.event.finalDate,
+          beginHour: enrollment.event.beginHour,
+          endHour: enrollment.event.endHour,
+        },
+        status: enrollment.status,
+        enrollmentDate: enrollment.enrollmentDate,
+      })),
+    };
   }
 
   private async toDtoResponse(enrollment: Enrollment): Promise<EnrollmentCreatedResponseDto> {
