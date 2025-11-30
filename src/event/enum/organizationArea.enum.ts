@@ -1,7 +1,6 @@
 export enum OrganizationArea {
     ALL_FACULTIES = 'Todas las facultades',
     WITHOUT_FACULTY = 'Sin facultad',
-    EXTERNAL_EVENT = 'Evento externo',
     SCIENCES = 'Facultad de Ciencias',
     MEDICAL_SCIENCES = 'Facultad de Ciencias Médicas',
     ADMINISTRATIVE_SCIENCES = 'Facultad de Ciencias Administrativas',

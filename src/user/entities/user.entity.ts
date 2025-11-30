@@ -1,7 +1,6 @@
 import { BeforeSoftRemove, Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "../enum/role.enum";
 import { Exclude } from "class-transformer";
-import { OrganizationArea } from "src/event/enum/organizationArea.enum";
 
 @Entity('users')
 export class User {
