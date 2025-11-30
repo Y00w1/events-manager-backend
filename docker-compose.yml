@@ -15,9 +15,9 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
-  backend:
+  event_manager_back:
     build: ../backend
-    container_name: myapp-backend
+    container_name: event-manager-backend
     restart: always
     depends_on:
       - db
@@ -34,12 +34,12 @@ services:
     ports:
       - "3000:3000"
 
-  frontend:
+  event_manager_front:
     image: nginx:alpine
     container_name: myapp-frontend
     restart: always
     depends_on:
-      - backend
+      - event_manager_back
     ports:
       - "8089:80"
     volumes:
