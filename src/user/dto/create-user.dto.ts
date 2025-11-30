@@ -25,8 +25,4 @@ export class CreateUserDto {
     @IsString()
     @IsNotEmpty()
     documentNumber: string;
-
-    @IsEnum(OrganizationArea)
-    @IsNotEmpty()
-    organizationArea: OrganizationArea;
 }

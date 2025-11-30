@@ -43,9 +43,6 @@ export class User {
     @Exclude()
     deletedAt?: Date;
 
-    @Column({ type: 'enum', enum: OrganizationArea })
-    organizationArea: OrganizationArea;
-
     @BeforeSoftRemove()
     deactivateBeforeSoftRemove() {
         this.isActive = false;
