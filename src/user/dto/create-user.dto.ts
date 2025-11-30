@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { OrganizationArea } from 'src/event/enum/organizationArea.enum';
 
 export class CreateUserDto {
     @Transform(({ value }) => value?.trim())
@@ -24,4 +25,8 @@ export class CreateUserDto {
     @IsString()
     @IsNotEmpty()
     documentNumber: string;
+
+    @IsEnum(OrganizationArea)
+    @IsNotEmpty()
+    organizationArea: OrganizationArea;
 }

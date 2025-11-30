@@ -1,5 +1,6 @@
 import { Expose } from "class-transformer";
 import { Role } from "../enum/role.enum";
+import { OrganizationArea } from "src/event/enum/organizationArea.enum";
 
 export class UserResponseDto {
   @Expose()
@@ -14,4 +15,6 @@ export class UserResponseDto {
   role: Role;
   @Expose()
   documentNumber: string;
+  @Expose()
+  organizationArea: OrganizationArea;
 }
