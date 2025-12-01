@@ -59,7 +59,19 @@ export class RoomService {
   }
 
   async update(id: string, updateRoomDto: UpdateRoomDto) {
-    return await this.roomRepository.update(id, updateRoomDto);
+    const room = await this.roomRepository.findOne({ where: { id } });
+    if (!room) throw new NotFoundException('Room not found');
+
+    const { campusId, ...roomData } = updateRoomDto;
+
+    if (campusId) {
+      const campus = await this.campusRepository.findOne({ where: { id: campusId } });
+      if (!campus) throw new NotFoundException('Campus not found');
+      room.campus = campus;
+    }
+
+    Object.assign(room, roomData);
+    return await this.roomRepository.save(room);
   }
 
   async remove(id: string) {

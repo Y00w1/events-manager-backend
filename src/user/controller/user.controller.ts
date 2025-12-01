@@ -28,6 +28,11 @@ export class UserController {
     return this.userService.update(userId, updateUserDto);
   }
 
+  @Patch(':userId')
+  async updateUser(@Param('userId') userId: string, @Body() updateUserDto: UpdateUserDto):Promise<UserResponseDto> {
+    return this.userService.update(userId, updateUserDto);
+  }
+
   @Patch(USER_API_ENTRY_POINT.PROMOTE_TO_ORGANIZER)
   async promoteToOrganizer(@Query('email') email: string): Promise<UserResponseDto> {
     return this.userService.updateToOrganizer(email);
