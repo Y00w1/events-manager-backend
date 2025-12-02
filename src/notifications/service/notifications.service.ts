@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as sgMailImport from '@sendgrid/mail';
-import { SendTemplateDto } from './dto/send-template.dto';
+import { SendTemplateDto } from '../dto/send-template.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -15,7 +15,7 @@ export class NotificationsService {
         }
     }
 
-    async sendtemplateEmail(dto: SendTemplateDto): Promise<void>{
+    async sendTemplateEmail(dto: SendTemplateDto): Promise<void>{
         const msg = {
             to: dto.to,
             from: this.configService.getOrThrow('SENDGRID_FROM_EMAIL'),

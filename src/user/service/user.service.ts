@@ -6,7 +6,7 @@ import { Role } from '../enum/role.enum';
 import { CreateUserDto, UserResponseDto, UpdateUserDto, GetUsersQueryDto, PaginatedUsersResponseDto } from '../dto';
 import { BcryptAdapter } from 'src/common/crypto/bcrypt.adapter';
 import { UserMapper } from 'src/common/mappers/user.mapper';
-import { NotificationsService } from 'src/notifications/notifications.service';
+import { NotificationsService } from 'src/notifications/service/notifications.service';
 import { SendTemplateDto } from 'src/notifications/dto/send-template.dto';
 import { NOTIFICATION_TEMPLATES } from 'src/notifications/constants/notifications.constants';
 import { ALLOWED_USER_SORT_FIELDS } from '../constant/user.constant';
@@ -33,6 +33,15 @@ export class UserService {
       password: hashedPassword,
     });
     await this.userRepository.save(user);
+    if (role === Role.ORGANIZER){
+      const templateData = new SendTemplateDto();
+      templateData.to = user.email;
+      templateData.templateId = NOTIFICATION_TEMPLATES.UPDATE_TO_ORGANIZER_NOTIFICATION;
+      templateData.dynamicData = {
+        first_name: user.name,
+      };
+      await this.notificationsService.sendTemplateEmail(templateData);
+    }
     return this.userMapper.toResponseDto(user);
   }
 
@@ -88,8 +97,9 @@ export class UserService {
     templateData.to = user.email;
     templateData.templateId = NOTIFICATION_TEMPLATES.UPDATE_TO_ORGANIZER_NOTIFICATION;
     templateData.dynamicData = {
+      first_name: user.name,
     };
-    await this.notificationsService.sendtemplateEmail(templateData);
+    await this.notificationsService.sendTemplateEmail(templateData);
     return this.userMapper.toResponseDto(user);
   }
 
