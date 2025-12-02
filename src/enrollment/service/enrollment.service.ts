@@ -4,11 +4,14 @@ import { Enrollment } from '../entities/enrollment.entity';
 import { Repository, Equal } from 'typeorm';
 import { CreateEnrollmentDto, EnrollmentCreatedResponseDto, EnrollmentsByEventResponseDto, EnrollmentsByUserResponseDto, UpdateEnrollmentDto } from '../dto';
 import { Event } from 'src/event/entities/event.entity';
-import { ENROLLMENT_EXCEPTION_MESSAGES, ENROLLMENT_STATUS } from '../constant/enrollment.constant';
+import { ENROLLMENT_STATUS } from '../constant/enrollment.constant';
 import { EnrollmentAlreadyExistsException } from '../exceptions/enrollment-already-exists.exception';
 import { EnrollmentEventFullException } from '../exceptions/enrollment-event-full.exception';
 import { EnrollmentNotFoundException } from '../exceptions/enrollment-not-found.exception';
 import { EnrollmentCancelledResponseDto } from '../dto/enrollment-cancelled-response.dto';
+import { SendTemplateDto } from 'src/notifications/dto/send-template.dto';
+import { NOTIFICATION_TEMPLATES } from 'src/notifications/constants/notifications.constants';
+import { NotificationsService } from 'src/notifications/service/notifications.service';
 
 @Injectable()
 export class EnrollmentService {
@@ -17,6 +20,7 @@ export class EnrollmentService {
     private enrollmentRepository: Repository<Enrollment>,
     @InjectRepository(Event)
     private eventRepository: Repository<Event>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(createEnrollmentDto: CreateEnrollmentDto, userId: string): Promise<EnrollmentCreatedResponseDto> {
@@ -31,7 +35,7 @@ export class EnrollmentService {
         user: { id: userId },
         event: { id: event.id }
       },
-      relations: ['event'],
+      relations: ['event', 'user'],
      });
     if (enrollment){
       if (enrollment.status !== ENROLLMENT_STATUS.CANCELLED){
@@ -40,6 +44,7 @@ export class EnrollmentService {
       enrollment.status = status;
       enrollment.enrollmentDate = new Date();
       this.enrollmentRepository.save(enrollment);
+      await this.sendEnrollmentNotificationEmail(enrollment, event, status);
       return this.toDtoResponse(enrollment);
     } 
 
@@ -60,15 +65,18 @@ export class EnrollmentService {
     await this.enrollmentRepository.save(newEnrollment);
     const savedEnrollment = await this.enrollmentRepository.findOneOrFail({
       where: { id: newEnrollment.id },
-      relations: ['event'],
+      relations: ['event', 'user'],
     });
+
+    await this.sendEnrollmentNotificationEmail(savedEnrollment, event, status);
+    
     return this.toDtoResponse(savedEnrollment);
   }
 
   async cancel(id: string, userId: string): Promise<EnrollmentCancelledResponseDto> {
     const enrollment = await this.enrollmentRepository.findOne({
       where: { id, user: { id: userId } },
-      relations: ['event'],
+      relations: ['event', 'user'],
     });
 
     if (!enrollment) throw new EnrollmentNotFoundException();
@@ -78,6 +86,9 @@ export class EnrollmentService {
     enrollment.status = ENROLLMENT_STATUS.CANCELLED;
     enrollment.cancelledAt = new Date();
     await this.enrollmentRepository.save(enrollment);
+
+    await this.sendEnrollmentNotificationEmail(enrollment, enrollment.event, ENROLLMENT_STATUS.CANCELLED);
+
     return this.toCancelledDtoResponse(enrollment);
   }
 
@@ -120,6 +131,25 @@ export class EnrollmentService {
         status: Equal(ENROLLMENT_STATUS.ENROLLED) 
       },
     });
+  }
+
+  private async sendEnrollmentNotificationEmail(enrollment: Enrollment, event: Event, status: string): Promise<void> {
+    const templateData = new SendTemplateDto();
+    const dynamicData: Object = {
+      first_name: enrollment.user.name,
+      event_name: event.name,
+      event_date: event.initialDate.toDateString(),
+      event_time: `${event.beginHour} - ${event.endHour}`,
+      event_location: `${event.room?.campus?.name} - ${event.room?.type}`,
+      event_modality: event.modality,
+    };
+    templateData.to = enrollment.user.email;
+    templateData.dynamicData = dynamicData;
+    templateData.templateId = status == ENROLLMENT_STATUS.ENROLLED
+      ? NOTIFICATION_TEMPLATES.EVENT_ENROLLED
+      : NOTIFICATION_TEMPLATES.EVENT_UNENROLLED;
+
+    await this.notificationsService.sendTemplateEmail(templateData);
   }
 
   private async toDtoEnrollmentsByEventResponse(enrollments: Enrollment[]): Promise<EnrollmentsByEventResponseDto> {

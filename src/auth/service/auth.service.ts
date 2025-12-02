@@ -1,13 +1,13 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
 import { UserService } from 'src/user/service/user.service';
-import { Tokens } from './types';
+import { Tokens } from '../types';
 import { Role } from 'src/user/enum/role.enum';
-import { LoginDto, SignupDto } from './dto';
+import { LoginDto, SignupDto } from '../dto';
 import { BcryptAdapter } from 'src/common/crypto/bcrypt.adapter';
 import { UserResponseDto } from 'src/user/dto';
 import { UserMapper } from 'src/common/mappers/user.mapper';
+import { TermsNotAcceptedException } from '../exceptions/terms-not-accepted.exception';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +23,9 @@ export class AuthService {
         const user = await this.userService.create({
             ...signupDto,
         }, Role.USER);
+
+        if (!signupDto.termsAccepted) throw new TermsNotAcceptedException();
+
         const tokens = await this.getTokens(user.id, user.email, user.role);
         await this.updateRefreshToken(user.id, tokens.refreshToken);
         return tokens;

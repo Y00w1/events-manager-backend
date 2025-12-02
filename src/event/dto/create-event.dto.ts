@@ -67,6 +67,6 @@ export class CreateEventDto {
 
     @Transform(({ value }) => value?.trim())
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     urlImage: string;
 }

@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { BcryptAdapter } from 'src/common/crypto/bcrypt.adapter';
 import { UserMapper } from 'src/common/mappers/user.mapper';
-import { NotificationsService } from 'src/notifications/notifications.service';
+import { NotificationsService } from 'src/notifications/service/notifications.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User])],

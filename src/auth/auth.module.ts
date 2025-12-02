@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { AuthService } from './service/auth.service';
 import { AccessTokenStrategy, RefreshTokenStrategy } from './strategies';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from 'src/user/user.module';
 import { BcryptAdapter } from 'src/common/crypto/bcrypt.adapter';
 import { UserMapper } from 'src/common/mappers/user.mapper';
+import { AuthController } from './controller/auth.controller';
 
 @Module({
   imports: [JwtModule.register({}),

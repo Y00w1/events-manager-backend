@@ -1,30 +1,31 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { LoginDto, SignupDto } from './dto';
-import { Tokens } from './types';
 import { GetCurrentUserId, Public } from 'src/common/decorators';
 import { RefreshTokenGuard } from 'src/common/guard';
 import { GetCurrentUser } from 'src/common/decorators/get-current-user.decorators';
 import { UserResponseDto } from 'src/user/dto';
+import { AuthService } from '../service/auth.service';
+import { SignupDto, LoginDto } from '../dto';
+import { Tokens } from '../types';
+import { AUTH_API_ENTRY_POINT } from '../constant/auth.constant';
 
-@Controller('auth')
+@Controller(AUTH_API_ENTRY_POINT.BASE)
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
     
     @Public()
-    @Post('local/signup')
+    @Post(AUTH_API_ENTRY_POINT.SIGNUP)
     async signupLocal(@Body() signupDto: SignupDto): Promise<Tokens> {
         return this.authService.signupLocal(signupDto);
     }
 
     @Public()
-    @Post('local/login')
+    @Post(AUTH_API_ENTRY_POINT.LOGIN)
     @HttpCode(HttpStatus.OK)
     async loginLocal(@Body() loginDto: LoginDto): Promise<Tokens> {
         return this.authService.loginLocal(loginDto);
     }
 
-    @Post('logout')
+    @Post(AUTH_API_ENTRY_POINT.LOGOUT)
     @HttpCode(HttpStatus.OK)
     async logout(@GetCurrentUserId() userId: string) {
         return this.authService.logout(userId);
@@ -32,7 +33,7 @@ export class AuthController {
 
     @Public()
     @UseGuards(RefreshTokenGuard)
-    @Post('refresh')
+    @Post(AUTH_API_ENTRY_POINT.REFRESH_TOKEN)
     @HttpCode(HttpStatus.OK)
     async refreshTokens(
         @GetCurrentUserId() userId: string, 
@@ -41,7 +42,7 @@ export class AuthController {
         return this.authService.refreshTokens(userId, refreshToken);
     }
 
-    @Get('me')
+    @Get(AUTH_API_ENTRY_POINT.ME)
     async getMe(@GetCurrentUserId() userId: string) : Promise<UserResponseDto>{
         return this.authService.getMe(userId);
     }
