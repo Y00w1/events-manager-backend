@@ -1,6 +1,7 @@
 import { BeforeSoftRemove, Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "../enum/role.enum";
 import { Exclude } from "class-transformer";
+import { IsBoolean } from "class-validator";
 
 @Entity('users')
 export class User {
@@ -29,6 +30,12 @@ export class User {
     @Column( { default: true } )
     @Exclude()
     isActive: boolean;
+
+    @IsBoolean()
+    termsAccepted: boolean;
+
+    @Column({ default: () => 'CURRENT_TIMESTAMP' })
+    termsAcceptedAt: Date;
 
     @Column({ default: () => 'CURRENT_TIMESTAMP' })
     @Exclude()

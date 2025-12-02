@@ -10,6 +10,7 @@ import { NotificationsService } from 'src/notifications/notifications.service';
 import { SendTemplateDto } from 'src/notifications/dto/send-template.dto';
 import { NOTIFICATION_TEMPLATES } from 'src/notifications/constants/notifications.constants';
 import { ALLOWED_USER_SORT_FIELDS } from '../constant/user.constant';
+import { AlreadyUsedEmailException } from '../exceptions/already-used-email.exception';
 
 @Injectable()
 export class UserService {
@@ -24,9 +25,7 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto, role: Role = Role.USER): Promise<UserResponseDto> {
     const existingUser = await this.findByEmail(createUserDto.email);
-    if (existingUser) {
-      throw new NotFoundException('User with this email already exists');
-    }
+    if (existingUser) throw new AlreadyUsedEmailException
     const hashedPassword = await this.bcryptAdapter.hash(createUserDto.password);
     const user = this.userRepository.create({ 
       ...createUserDto, 

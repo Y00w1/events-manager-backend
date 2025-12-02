@@ -4,6 +4,13 @@ export const USER_API_ENTRY_POINT = {
     PROMOTE_TO_ORGANIZER: 'promote/organizer',
 }
 
+export const USER_EXCEPTION_MESSAGES = {
+    ALREADY_USED_EMAIL: {
+        CODE: 'ALREADY_USED_EMAIL',
+        MESSAGE: 'The provided email is already in use.',
+    },
+};
+
 export const USER_SORT = {
     CREATED_AT: 'createdAt',
     EMAIL: 'email',

@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class SignupDto {
     @Transform(({ value }) => value?.trim())
@@ -24,4 +24,8 @@ export class SignupDto {
     @IsString()
     @IsNotEmpty()
     documentNumber: string;
+
+    @IsBoolean()
+    @IsOptional()
+    termsAccepted: boolean = true;
 }
