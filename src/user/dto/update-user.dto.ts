@@ -5,7 +5,7 @@ import { CreateUserDto } from "./create-user.dto";
 export class UpdateUserDto extends PartialType(PickType(CreateUserDto, [
     'name',
     'phone',
-    'documentNumber',
+    'documentNumber'
 ] as const)) {
     @Transform(({ value }) => value?.trim())
     name?: string;

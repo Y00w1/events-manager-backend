@@ -27,7 +27,7 @@ export class User {
     @Column()
     role: Role;
 
-    @Column( { default: true } )
+    @Column({ default: true })
     @Exclude()
     isActive: boolean;
 
@@ -48,7 +48,7 @@ export class User {
     @DeleteDateColumn({ nullable: true })
     @Exclude()
     deletedAt?: Date;
-    
+
     @BeforeSoftRemove()
     deactivateBeforeSoftRemove() {
         this.isActive = false;
